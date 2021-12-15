@@ -1,4 +1,4 @@
-module github.com/goravel/file-rotatelogs
+module github.com/goravel/file-rotatelogs/v2
 
 go 1.12
 
