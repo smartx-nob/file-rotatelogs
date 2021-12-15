@@ -1,7 +1,7 @@
 file-rotatelogs
 ==================
 
-** The original respository has stopped maintenance, Goravel provides compatibility maintenance. **
+**The original respository has stopped maintenance, Goravel provides compatibility maintenance.**
 
 Provide an `io.Writer` that periodically rotates log files from within the application. Port of [File::RotateLogs](https://metacpan.org/release/File-RotateLogs) from Perl to Go.
 
