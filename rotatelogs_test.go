@@ -12,40 +12,39 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSatisfiesIOWriter(t *testing.T) {
 	var w io.Writer
-	w, _ = rotatelogs.New("/foo/bar")
+	w, _ = New("/foo/bar")
 	_ = w
 }
 
 func TestSatisfiesIOCloser(t *testing.T) {
 	var c io.Closer
-	c, _ = rotatelogs.New("/foo/bar")
+	c, _ = New("/foo/bar")
 	_ = c
 }
 
 func TestLogRotate(t *testing.T) {
 	testCases := []struct {
 		Name        string
-		FixArgs     func([]rotatelogs.Option, string) []rotatelogs.Option
-		CheckExtras func(*testing.T, *rotatelogs.RotateLogs, string) bool
+		FixArgs     func([]Option, string) []Option
+		CheckExtras func(*testing.T, *RotateLogs, string) bool
 	}{
 		{
 			Name: "Basic Usage",
 		},
 		{
 			Name: "With Symlink",
-			FixArgs: func(options []rotatelogs.Option, dir string) []rotatelogs.Option {
+			FixArgs: func(options []Option, dir string) []Option {
 				linkName := filepath.Join(dir, "log")
 
-				return append(options, rotatelogs.WithLinkName(linkName))
+				return append(options, WithLinkName(linkName))
 			},
-			CheckExtras: func(t *testing.T, rl *rotatelogs.RotateLogs, dir string) bool {
+			CheckExtras: func(t *testing.T, rl *RotateLogs, dir string) bool {
 				linkName := filepath.Join(dir, "log")
 				linkDest, err := os.Readlink(linkName)
 				if !assert.NoError(t, err, `os.Readlink(%#v) should succeed`, linkName) {
@@ -60,12 +59,12 @@ func TestLogRotate(t *testing.T) {
 		},
 		{
 			Name: "With Symlink (multiple levels)",
-			FixArgs: func(options []rotatelogs.Option, dir string) []rotatelogs.Option {
+			FixArgs: func(options []Option, dir string) []Option {
 				linkName := filepath.Join(dir, "nest1", "nest2", "log")
 
-				return append(options, rotatelogs.WithLinkName(linkName))
+				return append(options, WithLinkName(linkName))
 			},
-			CheckExtras: func(t *testing.T, rl *rotatelogs.RotateLogs, dir string) bool {
+			CheckExtras: func(t *testing.T, rl *RotateLogs, dir string) bool {
 				linkName := filepath.Join(dir, "nest1", "nest2", "log")
 				linkDest, err := os.Readlink(linkName)
 				if !assert.NoError(t, err, `os.Readlink(%#v) should succeed`, linkName) {
@@ -95,12 +94,12 @@ func TestLogRotate(t *testing.T) {
 			dummyTime = dummyTime.Add(time.Duration(-1 * dummyTime.Nanosecond()))
 			clock := clockwork.NewFakeClockAt(dummyTime)
 
-			options := []rotatelogs.Option{rotatelogs.WithClock(clock), rotatelogs.WithMaxAge(24 * time.Hour)}
+			options := []Option{WithClock(clock), WithMaxAge(24 * time.Hour)}
 			if fn := tc.FixArgs; fn != nil {
 				options = fn(options, dir)
 			}
 
-			rl, err := rotatelogs.New(filepath.Join(dir, "log%Y%m%d%H%M%S"), options...)
+			rl, err := New(filepath.Join(dir, "log%Y%m%d%H%M%S"), options...)
 			if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 				return
 			}
@@ -204,11 +203,11 @@ func TestLogRotationCount(t *testing.T) {
 	clock := clockwork.NewFakeClockAt(dummyTime)
 
 	t.Run("Either maxAge or rotationCount should be set", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "log%Y%m%d%H%M%S"),
-			rotatelogs.WithClock(clock),
-			rotatelogs.WithMaxAge(time.Duration(0)),
-			rotatelogs.WithRotationCount(0),
+			WithClock(clock),
+			WithMaxAge(time.Duration(0)),
+			WithRotationCount(0),
 		)
 		if !assert.NoError(t, err, `Both of maxAge and rotationCount is disabled`) {
 			return
@@ -217,11 +216,11 @@ func TestLogRotationCount(t *testing.T) {
 	})
 
 	t.Run("Either maxAge or rotationCount should be set", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "log%Y%m%d%H%M%S"),
-			rotatelogs.WithClock(clock),
-			rotatelogs.WithMaxAge(1),
-			rotatelogs.WithRotationCount(1),
+			WithClock(clock),
+			WithMaxAge(1),
+			WithRotationCount(1),
 		)
 		if !assert.Error(t, err, `Both of maxAge and rotationCount is enabled`) {
 			return
@@ -232,11 +231,11 @@ func TestLogRotationCount(t *testing.T) {
 	})
 
 	t.Run("Only latest log file is kept", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "log%Y%m%d%H%M%S"),
-			rotatelogs.WithClock(clock),
-			rotatelogs.WithMaxAge(-1),
-			rotatelogs.WithRotationCount(1),
+			WithClock(clock),
+			WithMaxAge(-1),
+			WithRotationCount(1),
 		)
 		if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 			return
@@ -259,11 +258,11 @@ func TestLogRotationCount(t *testing.T) {
 
 	t.Run("Old log files are purged except 2 log files", func(t *testing.T) {
 		CreateRotationTestFile(dir, dummyTime, time.Hour, 5)
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "log%Y%m%d%H%M%S"),
-			rotatelogs.WithClock(clock),
-			rotatelogs.WithMaxAge(-1),
-			rotatelogs.WithRotationCount(2),
+			WithClock(clock),
+			WithMaxAge(-1),
+			WithRotationCount(2),
 		)
 		if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 			return
@@ -292,7 +291,7 @@ func TestLogSetOutput(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	rl, err := rotatelogs.New(filepath.Join(dir, "log%Y%m%d%H%M%S"))
+	rl, err := New(filepath.Join(dir, "log%Y%m%d%H%M%S"))
 	if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 		return
 	}
@@ -332,12 +331,12 @@ func TestGHIssue16(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	rl, err := rotatelogs.New(
+	rl, err := New(
 		filepath.Join(dir, "log%Y%m%d%H%M%S"),
-		rotatelogs.WithLinkName("./test.log"),
-		rotatelogs.WithRotationTime(10*time.Second),
-		rotatelogs.WithRotationCount(3),
-		rotatelogs.WithMaxAge(-1),
+		WithLinkName("./test.log"),
+		WithRotationTime(10*time.Second),
+		WithRotationCount(3),
+		WithMaxAge(-1),
 	)
 	if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 		return
@@ -357,7 +356,7 @@ func TestRotationGenerationalNames(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	t.Run("Rotate over unchanged pattern", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "unchanged-pattern.log"),
 		)
 		if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
@@ -404,9 +403,9 @@ func TestRotationGenerationalNames(t *testing.T) {
 		defer rl.Close()
 	})
 	t.Run("Rotate over pattern change over every second", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "every-second-pattern-%Y%m%d%H%M%S.log"),
-			rotatelogs.WithRotationTime(time.Nanosecond),
+			WithRotationTime(time.Nanosecond),
 		)
 		if !assert.NoError(t, err, `rotatelogs.New should succeed`) {
 			return
@@ -447,7 +446,7 @@ func TestGHIssue23(t *testing.T) {
 		loc, _ := time.LoadLocation(locName)
 		tests := []struct {
 			Expected string
-			Clock    rotatelogs.Clock
+			Clock    Clock
 		}{
 			{
 				Expected: filepath.Join(dir, strings.ToLower(strings.Replace(locName, "/", "_", -1))+".201806010000.log"),
@@ -466,9 +465,9 @@ func TestGHIssue23(t *testing.T) {
 			test := test
 			t.Run(fmt.Sprintf("location = %s, time = %s", locName, test.Clock.Now().Format(time.RFC3339)), func(t *testing.T) {
 				template := strings.ToLower(strings.Replace(locName, "/", "_", -1)) + ".%Y%m%d%H%M.log"
-				rl, err := rotatelogs.New(
+				rl, err := New(
 					filepath.Join(dir, template),
-					rotatelogs.WithClock(test.Clock), // we're not using WithLocation, but it's the same thing
+					WithClock(test.Clock), // we're not using WithLocation, but it's the same thing
 				)
 				if !assert.NoError(t, err, "rotatelogs.New should succeed") {
 					return
@@ -492,9 +491,9 @@ func TestForceNewFile(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	t.Run("Force a new file", func(t *testing.T) {
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			filepath.Join(dir, "force-new-file.log"),
-			rotatelogs.ForceNewFile(),
+			ForceNewFile(),
 		)
 		if !assert.NoError(t, err, "rotatelogs.New should succeed") {
 			return
@@ -504,9 +503,9 @@ func TestForceNewFile(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			baseFn := filepath.Join(dir, "force-new-file.log")
-			rl, err := rotatelogs.New(
+			rl, err := New(
 				baseFn,
-				rotatelogs.ForceNewFile(),
+				ForceNewFile(),
 			)
 			if !assert.NoError(t, err, "rotatelogs.New should succeed") {
 				return
@@ -544,9 +543,9 @@ func TestForceNewFile(t *testing.T) {
 
 	t.Run("Force a new file with Rotate", func(t *testing.T) {
 		baseFn := filepath.Join(dir, "force-new-file-rotate.log")
-		rl, err := rotatelogs.New(
+		rl, err := New(
 			baseFn,
-			rotatelogs.ForceNewFile(),
+			ForceNewFile(),
 		)
 		if !assert.NoError(t, err, "rotatelogs.New should succeed") {
 			return

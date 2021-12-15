@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 )
 
 func ExampleForceNewFile() {
@@ -18,8 +16,8 @@ func ExampleForceNewFile() {
 	logPath := fmt.Sprintf("%s/test.log", logDir)
 
 	for i := 0; i < 2; i++ {
-		writer, err := rotatelogs.New(logPath,
-			rotatelogs.ForceNewFile(),
+		writer, err := New(logPath,
+			ForceNewFile(),
 		)
 		if err != nil {
 			fmt.Println("Could not open log file ", err)

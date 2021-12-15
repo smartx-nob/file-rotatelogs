@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/lestrrat-go/file-rotatelogs/internal/fileutil"
 	"github.com/lestrrat-go/strftime"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,7 +23,7 @@ func TestGenerateFn(t *testing.T) {
 			return
 		}
 		clock := clockwork.NewFakeClockAt(xt)
-		fn := fileutil.GenerateFn(pattern, clock, 24*time.Hour)
+		fn := GenerateFn(pattern, clock, 24*time.Hour)
 		expected := fmt.Sprintf("/path/to/%04d/%02d/%02d",
 			xt.Year(),
 			xt.Month(),
