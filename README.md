@@ -1,16 +1,13 @@
 file-rotatelogs
 ==================
 
+** The original respository has stopped maintenance, Goravel provides compatibility maintenance. **
+
 Provide an `io.Writer` that periodically rotates log files from within the application. Port of [File::RotateLogs](https://metacpan.org/release/File-RotateLogs) from Perl to Go.
 
 [![Build Status](https://travis-ci.org/lestrrat-go/file-rotatelogs.png?branch=master)](https://travis-ci.org/lestrrat-go/file-rotatelogs)
 
 [![GoDoc](https://godoc.org/github.com/lestrrat-go/file-rotatelogs?status.svg)](https://godoc.org/github.com/lestrrat-go/file-rotatelogs)
-
-# WARNINGS
-
-THIS PROJECT HAS BEEN ARCHIVED. IT WILL NOT RECEIVE UPDATES, THE AUTHOR DOES NOT WISH TO MAINTAIN OR SUPPORT IT.
-IN SHORT, DO NOT USE THIS PROJECT.
 
 # SYNOPSIS
 
